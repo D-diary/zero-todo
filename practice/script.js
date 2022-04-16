@@ -5,6 +5,11 @@
     return document.querySelector(target)
   }
 
+  const API_URL = 'http://localhost:3000/todos'
+  const $todos = get('.todos')
+  const $form = get('.todo_form')
+  const $todoInput = get('.todo_input')
+
   const createTodoElement = (item) => {
     const { id, content } = item
     const $todoItem = document.createElement('div')
@@ -39,6 +44,46 @@
     return $todoItem
   }
 
-  const init = () => {}
+  const renderAllTodos = (todos) => {
+    $todos.innerHTML = ''
+    todos.forEach((item) => {
+      const todoElement = createTodoElement(item)
+      $todos.appendChild(todoElement)
+    })
+  }
+  
+  const getTodos = () => {
+    fetch(API_URL)
+      .then((response => response.json()))
+      .then((todos) => renderAllTodos(todos))
+      .catch((error) => console.error(error))
+  }
+
+  const addTodo = (e) => {
+    e.preventDefault() // 새로고침 안되게함
+    const todo = {
+      content: $todoInput.value,
+      completed: false,
+    }
+    fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(todo),
+    })
+      .then(getTodos) // 새로 불러옴
+      .then(() => {
+        $todoInput.value = ''
+        $todoInput.focus()
+      }).catch(error => console.error(error)) // 폼 창을 비워주고 포커스해주고 에러처리
+  }
+
+  const init = () => {
+    window.addEventListener('DOMContentLoaded', () => {
+      getTodos();
+    });
+    $form.addEventListener('submit', addTodo)
+  }
   init()
 })()
